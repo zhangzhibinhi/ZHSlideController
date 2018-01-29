@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         let mainVC: ZHMainViewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "mainViewController") as! ZHMainViewController
         let sideVC: ZHSideViewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "sideViewController") as! ZHSideViewController
-        sideVC.view.width = UIScreen.main.bounds.size.width - 80
+        sideVC.view.frame.size.width = UIScreen.main.bounds.size.width - 80
         ZHSlideViewController.sharedSlideViewController.setup(MainViewController: mainVC, sideViewController: sideVC)
         self.window?.rootViewController = ZHSlideViewController.sharedSlideViewController
         self.window?.makeKeyAndVisible()
