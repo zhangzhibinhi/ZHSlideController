@@ -11,9 +11,12 @@ let panGesResponeMinWidth: CGFloat = 80
 let animationDuration: CGFloat = 0.3
 
 class ZHSlideViewController: UIViewController {
+    // public static controller
     static let sharedSlideViewController = sharedSlideController()
+    // default is true
     public var canShowLeft: Bool
     
+    // private params
     private var mainContentController: UIViewController?
     private var sideContentController: UIViewController?
     private var mainContentContainer: UIView?
@@ -24,16 +27,7 @@ class ZHSlideViewController: UIViewController {
         return ZHSlideViewController()
     }
     
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        self.canShowLeft = true
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        self.canShowLeft = true
-        super.init(coder: aDecoder)
-    }
-    
+    // public setup action
     public func setup(MainViewController mainController: UIViewController, sideViewController sideController: UIViewController) {
         self.mainContentController = mainController
         self.sideContentController = sideController
@@ -51,6 +45,17 @@ class ZHSlideViewController: UIViewController {
         self.initGestures()
     }
     
+    /// private action
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        self.canShowLeft = true
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        self.canShowLeft = true
+        super.init(coder: aDecoder)
+    }
+    
     private func initSubviews() {
         // setup mainContent
         self.mainContentContainer = UIView(frame: self.mainContentController!.view.frame)
@@ -64,14 +69,11 @@ class ZHSlideViewController: UIViewController {
         self.sideContentContainer?.addSubview(self.sideContentController!.view)
         self.addChildViewController(self.sideContentController!)
         
+        // setup background view
         self.sideBackgroundView = UIView(frame: (self.mainContentController?.view.bounds)!)
-        self.sideBackgroundView?.isUserInteractionEnabled = true
         self.sideBackgroundView?.backgroundColor = UIColor.white
-//        let imageView = UIImageView(image: UIImage(named: "fh_"))
-//        imageView.frame.origin.y = 29
-//        imageView.frame.origin.x = (sideBackgroundView?.frame.size.width)!-60
-//        sideBackgroundView?.addSubview(imageView)
         
+        // add observer for sideContentContainer.frame to change the alpha value of the background view
         self.sideContentContainer?.addObserver(self, forKeyPath: "frame", options: NSKeyValueObservingOptions.new, context: nil)
         
         // setup container frame
@@ -94,6 +96,7 @@ class ZHSlideViewController: UIViewController {
         self.sideContentContainer?.addGestureRecognizer(sidePanGes)
         self.sideBackgroundView?.addGestureRecognizer(sidePanGes)
         
+        // tap to hide
         let tapGes = UITapGestureRecognizer(target: self, action: #selector(hideAction(_:)))
         tapGes.require(toFail: sidePanGes)
         self.sideBackgroundView?.addGestureRecognizer(tapGes)
@@ -121,6 +124,7 @@ class ZHSlideViewController: UIViewController {
         case .ended:
             let currentX = panGes.location(in: self.view).x
             let durationX = currentX - self.gesStartX!
+            //
             if durationX > panGesResponeMinWidth {
                 self.showSideViewControllerAnimated(true, completionBlock: {
                     
@@ -149,6 +153,7 @@ class ZHSlideViewController: UIViewController {
         case .ended:
             let currentX = panGes.location(in: self.view).x
             let durationX = currentX - self.gesStartX!
+            //
             if durationX < -panGesResponeMinWidth {
                 self.hideSideViewControllerAnimated(true, completionBlock: {
                     
@@ -171,8 +176,10 @@ class ZHSlideViewController: UIViewController {
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "frame" {
+            // change the alpha value of the background view by the sideContentContainer's frame
             self.sideBackgroundView?.alpha = ((self.sideContentContainer?.frame.origin.x)! + (self.sideContentContainer?.frame.size.width)!)/(self.mainContentContainer?.frame.size.width)!
             
+            // add the backgroundView to the background if sideContainContainer is visible
             if ((self.sideContentContainer?.frame.origin.x)! + (self.sideContentContainer?.frame.size.width)!) > 0 && self.sideBackgroundView?.superview == nil {
                 self.mainContentContainer?.addSubview(self.sideBackgroundView!)
             }
@@ -206,6 +213,7 @@ class ZHSlideViewController: UIViewController {
             weakSelf?.sideContentContainer?.frame.origin.x = -(weakSelf?.sideContentContainer?.frame.size.width)!
         }) { (finished) in
             if finished {
+                // remove the backgroundView if sideContainContainer is invisible
                 weakSelf?.sideBackgroundView?.removeFromSuperview()
                 completionBlock()
             }
